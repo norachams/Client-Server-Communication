@@ -21,7 +21,7 @@ clients = {}
 client_counter = 1 #assgin unique client names
 
 ''' Handles communication with a client'''
-def handle_cleint(client_socket, client_name):
+def handle_client(client_socket, client_name):
     global clients
     clients[client_name] = {"connected_at": datetime.datetime.now(), "socket":client_socket}
 
@@ -62,7 +62,7 @@ def start_server():
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((HOST, PORT))  # Bind to localhost on port 12345
-    server_socket.listen(MAX_ClIENTS)
+    server_socket.listen(MAX_CLIENTS)
     print(f"Server started on {HOST}:{PORT}, listening for clients...")
 
     while True:
