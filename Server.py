@@ -67,14 +67,14 @@ def start_server():
 
     while True:
         if len(clients) < MAX_CLIENTS:
-        client_socket, addr = server_socket.accept()
-        client_name = f"Client{client_counter:02d}"  # Assign Client01, Client02...
-        client_counter += 1
-        print(f"[NEW CONNECTION] {client_name} connected from {addr}")
+            client_socket, addr = server_socket.accept()
+            client_name = f"Client{client_counter:02d}"  # Assign Client01, Client02...
+            client_counter += 1
+            print(f"[NEW CONNECTION] {client_name} connected from {addr}")
 
-        # Start a new thread for the client
-        client_thread = threading.Thread(target=handle_client, args=(client_socket, client_name))
-        client_thread.start()
+            # Start a new thread for the client
+            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_name))
+            client_thread.start()
 
 
 if __name__ == '__main__':
