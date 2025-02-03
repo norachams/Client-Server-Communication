@@ -27,7 +27,8 @@ def start_client():
 
             #recieve response
             data = client_socket.recv(1024).decode()
-            print(f"Received from server: {data}")
+            print(f"Received from server:")
+            print(f"{data}")
 
             if message.lower() == "exit":
                 print("Disconnecting...")
@@ -35,7 +36,7 @@ def start_client():
 
     except Exception as e:
         print(f"Error: {e}")
-        
+
     client_socket.close()
 
 if __name__ == '__main__':

@@ -26,9 +26,9 @@ def handle_client(client_socket, client_name):
     clients[client_name] = {"connected_at": datetime.datetime.now(), "socket":client_socket}
 
     try:
-        while true:
+        while True:
             #recieve message
-            data = client_socket.reccv(1024).decode()
+            data = client_socket.recv(1024).decode()
             if not data:
                 break
 
