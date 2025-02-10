@@ -1,6 +1,7 @@
 import socket
 import threading
 import datetime
+import os
 '''
 The server will:
 - Accept up to 3 clients
@@ -15,10 +16,41 @@ The server will:
 HOST = "127.0.0.1"
 PORT = 12345
 MAX_CLIENTS = 3
+FILE_DIRECTORY = "server_files" 
 
 #Global Cache for connected clients
 clients = {}
 client_counter = 1 #assgin unique client names
+
+
+# Ensure the folder exists and create folder if it doesn’t exist
+if not os.path.exists(FILE_DIRECTORY):
+    os.makedirs(FILE_DIRECTORY)  
+
+
+'''Returns a list of files available in the server repository'''
+def list_files():
+    """Returns a list of files in the server directory."""
+    try:
+        print(f"Checking files in: {FILE_DIRECTORY}")  # Debugging step
+        files = os.listdir(FILE_DIRECTORY)
+        print(f"Files found: {files}")  # Debugging step
+        return "\n".join(files) if files else "No files available."
+    except Exception as e:
+        return f"Error accessing directory: {e}"
+
+
+def send_file(cleint_socket, filename):
+    file_path = os.path.join(FILE_DIRECTORY, filename)
+    if os.path.exist(file_path):
+        try:
+            with open(file, "rb") as file:
+                client_socket.sendall(file.read())
+            print(f"File '{filename}' sent successfully.")
+        except Exception as e:
+            client_socket.send(f"Error sending file: {e}".encode())
+    else:
+        client_socket.send("File not found".endcode())
 
 ''' Handles communication with a client'''
 def handle_client(client_socket, client_name):
@@ -43,6 +75,11 @@ def handle_client(client_socket, client_name):
             elif data.lower() == "exit":
                 print(f"[{client_name}] Disconnected")
                 break #exit and close connection
+            elif data.lower() == "list":
+                client_socket.send(list_files().encode())
+            elif data.startswith("get"):
+                filename = data.split(" ", 1)[1]
+                send_file(client_socket, filename)
             #if we didnt get either of the special command then we will make the server echo message
             else:
                 response = f"{data} ACK"

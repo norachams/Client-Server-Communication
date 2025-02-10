@@ -1,5 +1,6 @@
 from socket import *
 import socket
+import os
 
 '''
 The client will:
@@ -12,6 +13,8 @@ The client will:
 HOST = "127.0.0.1"
 PORT = 12345
 
+DOWNLOAD_DIRECTORY = "downloaded_files"
+
 
 '''Connect to the server and send messages'''
 def start_client():
@@ -21,18 +24,32 @@ def start_client():
 
     try:
         while True:
-            message = input("Enter message ('status' for clients, 'exit' to disconnect): ")
+            message = input("Enter message ('status', 'list', 'get <file>', 'exit'): ")
             #send message to server
             client_socket.send(message.encode())
-
-            #recieve response
-            data = client_socket.recv(1024).decode()
-            print(f"Received from server:")
-            print(f"{data}")
 
             if message.lower() == "exit":
                 print("Disconnecting...")
                 break
+
+            #recieve response
+            response = client_socket.recv(1024).decode()
+            if message.lower() == "list":
+                print(f"Available files:\n{response}")
+
+            
+            elif message.startswith("get "):
+                filename = message.split(" ", 1)[1]
+                file_path =  os.path.join(DOWNLOAD_DIRECTORY, filename)
+                
+                #recieve the file data
+                with open(file_path, "wb") as file:
+                    data = client_socket.recv(4096)  # Receive file data
+                    file.write(data)
+                print(f"File '{filename}' downloaded successfully to '{DOWNLOAD_DIRECTORY}/")
+
+            else:
+                print(f"Server: {response}")            
 
     except Exception as e:
         print(f"Error: {e}")
