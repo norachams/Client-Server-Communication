@@ -2,6 +2,7 @@ import socket
 import threading
 import datetime
 import os
+import posixpath
 '''
 The server will:
 - Accept up to 3 clients
@@ -72,14 +73,18 @@ def handle_client(client_socket, client_name):
                     [f"{name}: Connected at {info['connected_at']}" for name, info in clients.items()]
                 )
                 client_socket.send(status_response.encode())
+
             elif data.lower() == "exit":
                 print(f"[{client_name}] Disconnected")
                 break #exit and close connection
+
             elif data.lower() == "list":
                 client_socket.send(list_files().encode())
+
             elif data.startswith("get"):
                 filename = data.split(" ", 1)[1]
                 send_file(client_socket, filename)
+
             #if we didnt get either of the special command then we will make the server echo message
             else:
                 response = f"{data} ACK"
