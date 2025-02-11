@@ -2,7 +2,7 @@ import socket
 import threading
 import datetime
 import os
-import posixpath
+
 '''
 The server will:
 - Accept up to 3 clients
@@ -41,17 +41,29 @@ def list_files():
         return f"Error accessing directory: {e}"
 
 
-def send_file(cleint_socket, filename):
+"""Sends a requested file to the client"""
+def send_file(client_socket, filename):
     file_path = os.path.join(FILE_DIRECTORY, filename)
-    if os.path.exist(file_path):
-        try:
-            with open(file, "rb") as file:
-                client_socket.sendall(file.read())
-            print(f"File '{filename}' sent successfully.")
-        except Exception as e:
-            client_socket.send(f"Error sending file: {e}".encode())
-    else:
-        client_socket.send("File not found".endcode())
+
+    if not os.path.exists(file_path):
+        client_socket.sendall(b"File not found")  
+        return
+
+    try:
+        with open(file_path, "rb") as file:
+            while chunk := file.read(1024): 
+                client_socket.sendall(chunk)  
+        
+        client_socket.sendall(b"FILE_TRANSFER_COMPLETE")
+        print(f"File '{filename}' sent successfully.")
+
+
+
+    except Exception as e:
+        client_socket.send(f"Error sending file: {e}".encode())
+        client_socket.sendall(f"Error sending file: {e}".encode())
+
+
 
 ''' Handles communication with a client'''
 def handle_client(client_socket, client_name):

@@ -12,7 +12,6 @@ The client will:
 '''
 HOST = "127.0.0.1"
 PORT = 12345
-
 DOWNLOAD_DIRECTORY = "downloaded_files"
 
 
@@ -25,31 +24,52 @@ def start_client():
     try:
         while True:
             message = input("Enter message ('status', 'list', 'get <file>', 'exit'): ")
-            #send message to server
             client_socket.send(message.encode())
 
             if message.lower() == "exit":
                 print("Disconnecting...")
                 break
 
-            #recieve response
-            response = client_socket.recv(1024).decode()
+            # Check the type of command before receiving any data
             if message.lower() == "list":
+                response = client_socket.recv(1024).decode()
                 print(f"Available files:\n{response}")
 
-            
             elif message.startswith("get "):
                 filename = message.split(" ", 1)[1]
-                file_path =  os.path.join(DOWNLOAD_DIRECTORY, filename)
+                print(f"Downloading '{filename}'...")
+
+                file_path = os.path.join(DOWNLOAD_DIRECTORY, filename)
+                os.makedirs(DOWNLOAD_DIRECTORY, exist_ok=True)
                 
-                #recieve the file data
-                with open(file_path, "wb") as file:
-                    data = client_socket.recv(4096)  # Receive file data
-                    file.write(data)
-                print(f"File '{filename}' downloaded successfully to '{DOWNLOAD_DIRECTORY}/")
+                # Start by receiving the first chunk.
+                data = client_socket.recv(1024)
+                
+                # Check if the file wasn't found.
+                if data.decode(errors="ignore") == "File not found":
+                    print(f"Error: '{filename}' does not exist on the server.")
+                else:
+                    with open(file_path, "wb") as file:
+                        # Check if this first chunk already contains the marker.
+                        if data.endswith(b"FILE_TRANSFER_COMPLETE"):
+                            file.write(data[:-len(b"FILE_TRANSFER_COMPLETE")])
+                        else:
+                            file.write(data)
+                            while True:
+                                data = client_socket.recv(1024)
+                                # Look for the marker at the end of this chunk.
+                                if data.endswith(b"FILE_TRANSFER_COMPLETE"):
+                                    file.write(data[:-len(b"FILE_TRANSFER_COMPLETE")])
+                                    break
+                                file.write(data)
+                    print(f"File '{filename}' downloaded successfully to '{DOWNLOAD_DIRECTORY}/'")
+
 
             else:
-                print(f"Server: {response}")            
+                # For any other commands, just receive and print the response.
+                response = client_socket.recv(1024).decode()
+                print(f"Server: {response}")
+    
 
     except Exception as e:
         print(f"Error: {e}")
